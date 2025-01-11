@@ -9,53 +9,38 @@ import SwiftUI
 import SwiftData
 
 struct ContentView: View {
-    @Environment(\.modelContext) private var modelContext
-    @Query private var items: [Item]
-
+    @State var selectedTab = 0
+    
     var body: some View {
-        NavigationSplitView {
-            List {
-                ForEach(items) { item in
-                    NavigationLink {
-                        Text("Item at \(item.timestamp, format: Date.FormatStyle(date: .numeric, time: .standard))")
+        ZStack(alignment: .bottom) {
+            TabView(selection: $selectedTab) {
+                AllCharactersView()
+                    .tag(0)
+                
+                FavoritesCharactersView()
+                    .tag(1)
+            }
+        }
+        
+        ZStack {
+            HStack(spacing: 32) {
+                ForEach((TabbedItems.allCases), id: \.self) { item in
+                    Button {
+                        self.selectedTab = item.rawValue
                     } label: {
-                        Text(item.timestamp, format: Date.FormatStyle(date: .numeric, time: .standard))
-                    }
-                }
-                .onDelete(perform: deleteItems)
-            }
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    EditButton()
-                }
-                ToolbarItem {
-                    Button(action: addItem) {
-                        Label("Add Item", systemImage: "plus")
+                        customTabItem(imageName: item.iconName, isActive: (self.selectedTab == item.rawValue))
                     }
                 }
             }
-        } detail: {
-            Text("Select an item")
+            .padding(.vertical, 10.0)
+            .padding(.horizontal, 32.0)
         }
-    }
-
-    private func addItem() {
-        withAnimation {
-            let newItem = Item(timestamp: Date())
-            modelContext.insert(newItem)
-        }
-    }
-
-    private func deleteItems(offsets: IndexSet) {
-        withAnimation {
-            for index in offsets {
-                modelContext.delete(items[index])
-            }
-        }
+        .background(.backgroundsBottomNavigation)
+        .clipShape(RoundedRectangle(cornerRadius: 31))
+        .shadow(radius: 12)
     }
 }
 
 #Preview {
     ContentView()
-        .modelContainer(for: Item.self, inMemory: true)
 }
