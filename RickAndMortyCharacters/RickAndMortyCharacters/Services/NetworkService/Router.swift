@@ -11,7 +11,7 @@ protocol URLRequestCovertible {
 }
 
 enum Router: URLRequestCovertible {
-    case fetchAllCharacters
+    case fetchAllCharacters(page: Int?)
     case searchCharacter(name: String)
     case fetchCharacterDetail(id: Int)
     case fetchSpecificCharacters(ids: [Int])
@@ -31,6 +31,12 @@ enum Router: URLRequestCovertible {
     
     var query: String? {
         switch self {
+        case .fetchAllCharacters(let page):
+            if let page = page {
+                return "/?page=\(page)"
+            } else {
+                return nil
+            }
         case .searchCharacter(let name):
             return "/?name=\(name)"
         default:
@@ -43,7 +49,7 @@ enum Router: URLRequestCovertible {
     }
     
     func makeURLRequest() throws -> URLRequest {
-        guard let url = URL(string: APIConfig.baseURL + endpoint) else {
+        guard let url = URL(string: APIConfig.baseURL + endpoint + (query ?? "")) else {
             throw NetworkError.invalidUrl
         }
         

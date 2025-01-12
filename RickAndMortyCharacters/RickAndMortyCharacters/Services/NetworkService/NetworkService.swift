@@ -43,8 +43,8 @@ class NetworkService<Router: URLRequestCovertible> {
 
 class Service: NetworkService<Router> {
     
-    func fetchAllCharacters() async throws -> CharacterResponse {
-        return try await request(CharacterResponse.self, router: .fetchAllCharacters)
+    func fetchAllCharacters(page: Int?) async throws -> CharacterResponse {
+        return try await request(CharacterResponse.self, router: .fetchAllCharacters(page: page))
     }
     
     func fetchFavoritesCharacters(ids: [Int]) async throws -> [Character] {

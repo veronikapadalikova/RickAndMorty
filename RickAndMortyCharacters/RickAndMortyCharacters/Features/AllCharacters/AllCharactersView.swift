@@ -22,7 +22,7 @@ struct AllCharactersView: View {
                 
                 // TODO: add search bar that is hidable and custom
                 List {
-                    ForEach(Array(viewModel.characters.enumerated()), id: \.1.self) { index, character in
+                    ForEach(Array(viewModel.characters), id: \.self) { character in
                         CharacterCard(character: character)
                             .overlay(content: {
                                 NavigationLink(destination: CharacterDetail(character: character, previousViewTitle: "Characters"), label: {
@@ -32,7 +32,11 @@ struct AllCharactersView: View {
                             })
                             .listRowSeparator(.hidden)
                             .listRowBackground(Color(.backgroundsPrimary))
-                            .padding(.bottom, index == viewModel.characters.count - 1 ? 72 : 0)
+                    }
+                    if viewModel.moreCharacters != nil {
+                        pagingRowView
+                            .listRowSeparator(.hidden)
+                            .listRowBackground(Color(.backgroundsPrimary))
                     }
                 }
                 .listStyle(.plain)
@@ -59,6 +63,49 @@ struct AllCharactersView: View {
                 appearance.shadowColor = .clear
                 UINavigationBar.appearance().standardAppearance = appearance
                 UINavigationBar.appearance().scrollEdgeAppearance = appearance
+            }
+        }
+    }
+    
+    var pagingRowView: some View {
+        ZStack(alignment: .center) {
+            switch viewModel.paginationState {
+            case .loading:
+                HStack {
+                    Spacer()
+                    ProgressView()
+                    Spacer()
+                }
+                .background(.backgroundsPrimary)
+            case .idle:
+                Rectangle()
+                     .fill(.backgroundsPrimary)
+            case .error:
+                HStack(spacing: 4) {
+                    Spacer()
+                    
+                    Image(systemName: "questionmark.diamond")
+                        .imageScale(.large)
+                        .foregroundStyle(.iconsSecondary)
+                        .background(.backgroundsPrimary)
+                    
+                    Text("Failed to load more")
+                        .fontStyle(Typography.paragraphSmall)
+                        .foregroundStyle(.foregroundsSecondary)
+                    
+                    // some reload button would be nice here
+                    Spacer()
+                }
+            case .none:
+                Rectangle()
+                     .fill(.backgroundsPrimary)
+            }
+        }
+        .frame(height: 60)
+        .padding(.bottom, 72)
+        .onAppear {
+            Task {
+                 await viewModel.fetchMoreCharacters()
             }
         }
     }
