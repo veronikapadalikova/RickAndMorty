@@ -6,9 +6,12 @@
 //
 
 import SwiftUI
+import SwiftData
 
 struct CharacterDetail: View {
     @Environment(\.dismiss) var dismiss
+    @Environment(\.modelContext) private var modelContext
+    @Query private var characterIds: [FavoriteCharacterID]
     
     var character: Character
     var previousViewTitle: String
@@ -42,12 +45,32 @@ struct CharacterDetail: View {
                                     .fontStyle(Typography.paragraphMedium)
                                     .foregroundStyle(.foregroundsSecondary)
                                 Spacer()
-                                // TODO: add condition for favorites
-                                Image("favorites_inactive_32px") // or favorites_active_32px
-                                    .resizable()
-                                    .aspectRatio(contentMode: .fit)
-                                    .frame(width: 32, height: 32)
-                                    .foregroundStyle(.iconsSecondary)
+                                
+                                Button {
+                                    if self.characterIds.contains(where: { $0.id == self.character.id }) {
+                                        if let index = characterIds.firstIndex(where: { $0.id == self.character.id }) {
+                                            modelContext.delete(characterIds[index])
+                                        }
+                                    } else {
+                                        let newFavoriteItem = FavoriteCharacterID(id: self.character.id)
+                                        modelContext.insert(newFavoriteItem)
+                                    }
+                                } label: {
+                                    if self.characterIds.contains(where: { $0.id == self.character.id }) {
+                                        Image("favorites_active_32px")
+                                            .resizable()
+                                            .aspectRatio(contentMode: .fit)
+                                            .frame(width: 32, height: 32)
+                                            .foregroundStyle(.accentPrimary)
+                                    } else {
+                                        Image("favorites_inactive_32px")
+                                            .resizable()
+                                            .aspectRatio(contentMode: .fit)
+                                            .frame(width: 32, height: 32)
+                                            .foregroundStyle(.iconsSecondary)
+
+                                    }
+                                }
                             }
                             
                             Text(character.name)

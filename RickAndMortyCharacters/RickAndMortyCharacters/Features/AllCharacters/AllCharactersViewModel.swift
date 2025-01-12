@@ -15,11 +15,7 @@ protocol CharacterViewModel {
 
 @MainActor
 class AllCharactersViewModel: ObservableObject, @preconcurrency CharacterViewModel {
-    @Published var characters: [Character] = [] {
-        didSet {
-            print(characters)
-        }
-    }
+    @Published var characters: [Character] = []
     
     init(){}
     

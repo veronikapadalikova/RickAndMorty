@@ -6,8 +6,11 @@
 //
 
 import SwiftUI
+import SwiftData
 
 struct CharacterCard: View {
+    @Environment(\.modelContext) private var modelContext
+    @Query private var characterIds: [FavoriteCharacterID]
     
     let character: Character
     
@@ -34,13 +37,13 @@ struct CharacterCard: View {
                         .fontStyle(Typography.heading3)
                         .foregroundStyle(Color(.foregroundsPrimary))
                     
-                    // TODO: add condition for favorites
-                    Image("favorites_active")
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .frame(width: 16, height: 16)
-                        .foregroundStyle(Color(.accentPrimary))
-                        .padding(.vertical, 2)
+                    if self.characterIds.contains(where: { $0.id == self.character.id }) {
+                        Image("favorites_active")
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: 16, height: 16)
+                            .foregroundStyle(.accentPrimary)
+                    }
                 }
                 
                 Text(self.character.status.rawValue)

@@ -6,8 +6,11 @@
 //
 
 import SwiftUI
+import SwiftData
 
 struct AllCharactersView: View {
+    @Environment(\.modelContext) private var modelContext
+    @Query private var characterIds: [FavoriteCharacterID]
     
     @ObservedObject private var viewModel = AllCharactersViewModel()
     
