@@ -5,7 +5,19 @@
 //  Created by Veronika Padalíková on 11.01.2025.
 //
 
-struct Character: Decodable {
+struct CharacterResponse: Decodable {
+    let info: ResponseInfo
+    let results: [Character]
+}
+
+struct ResponseInfo: Decodable {
+    let count: Int
+    let pages: Int
+    let next: String?
+    let prev: String?
+}
+
+struct Character: Decodable, Hashable {
     let id: Int
     let name: String
     let status: CharacterStatus
@@ -18,6 +30,15 @@ struct Character: Decodable {
     let episode: [String]
     let url: String
     let created: String
+    
+    static func == (lhs: Character, rhs: Character) -> Bool {
+        return lhs.id == rhs.id && lhs.name == rhs.name
+    }
+    
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+        hasher.combine(name)
+    }
 }
 
 struct CharacterOrigin: Decodable {

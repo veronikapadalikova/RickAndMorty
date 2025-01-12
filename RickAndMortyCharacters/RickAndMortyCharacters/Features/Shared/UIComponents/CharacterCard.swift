@@ -50,7 +50,7 @@ struct CharacterCard: View {
             
             Spacer()
             
-            Image("chevron_left_24px")
+            Image("chevron_right_24px")
                 .resizable()
                 .aspectRatio(contentMode: .fit)
                 .fontWeight(.regular)

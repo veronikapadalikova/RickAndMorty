@@ -14,7 +14,7 @@ enum TabbedItems: Int, CaseIterable {
         case .allCharacters:
             return "characters"
         case .favoritesCharaters:
-            return "favorites"
+            return "favorites_inactive"
         }
     }
 }
