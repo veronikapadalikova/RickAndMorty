@@ -40,3 +40,18 @@ class NetworkService<Router: URLRequestCovertible> {
         }
     }
 }
+
+class Service: NetworkService<Router> {
+    
+    func fetchAllCharacters(page: Int?) async throws -> CharacterResponse {
+        return try await request(CharacterResponse.self, router: .fetchAllCharacters(page: page))
+    }
+    
+    func fetchFavoritesCharacters(ids: [Int]) async throws -> [Character] {
+        return try await request([Character].self, router: .fetchSpecificCharacters(ids: ids))
+    }
+    
+    func fetchSearchedCharacter(name: String) async throws -> CharacterResponse {
+        return try await request(CharacterResponse.self, router: .searchCharacter(name: name))
+    }
+}
