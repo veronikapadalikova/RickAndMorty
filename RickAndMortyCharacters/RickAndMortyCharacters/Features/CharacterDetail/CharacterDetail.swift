@@ -40,10 +40,12 @@ struct CharacterDetail: View {
                                         if self.characterIds.contains(where: { $0.id == self.character.id }) {
                                             if let index = characterIds.firstIndex(where: { $0.id == self.character.id }) {
                                                 modelContext.delete(characterIds[index])
+                                                UINotificationFeedbackGenerator().notificationOccurred(.error )
                                             }
                                         } else {
                                             let newFavoriteItem = FavoriteCharacterID(id: self.character.id)
                                             modelContext.insert(newFavoriteItem)
+                                            UINotificationFeedbackGenerator().notificationOccurred(.success)
                                         }
                                     } label: {
                                         if self.characterIds.contains(where: { $0.id == self.character.id }) {

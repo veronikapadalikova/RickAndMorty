@@ -11,40 +11,41 @@ import SwiftData
 struct ContentView: View {
     @State private var selectedTab = 0
     
+    init() {
+        UITabBar.appearance().isHidden = true
+    }
+    
     var body: some View {
-        ZStack(alignment: .bottom) {
-            Group {
-                switch selectedTab {
-                case 0:
+        StyledNavigationStack {
+            ZStack(alignment: .bottom) {
+                TabView(selection: $selectedTab) {
                     AllCharactersView()
-                case 1:
+                        .tag(0)
+                    
                     FavoritesCharactersView()
-                default:
-                    Text("Unknown Tab")
+                        .tag(1)
                 }
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .edgesIgnoringSafeArea(.all)
-            
-            ZStack {
-                HStack(spacing: 32) {
-                    ForEach(TabbedItems.allCases, id: \.self) { item in
-                        Button(action: {
-                            selectedTab = item.rawValue
-                        }) {
-                            customTabItem(imageName: item.iconName, isActive: (selectedTab == item.rawValue))
+                
+                HStack {
+                    HStack(spacing: 32) {
+                        ForEach(TabbedItems.allCases, id: \.self) { item in
+                            Button(action: {
+                                selectedTab = item.rawValue
+                            }) {
+                                customTabItem(imageName: item.iconName, isActive: (selectedTab == item.rawValue))
+                            }
                         }
                     }
+                    .padding(.vertical, 10)
+                    .padding(.horizontal, 32)
                 }
-                .padding(.vertical, 10)
-                .padding(.horizontal, 32)
+                .background(.backgroundsBottomNavigation)
+                .clipShape(RoundedRectangle(cornerRadius: 31))
+                .shadow(color: .black.opacity(0.16), radius: 16, x: 0, y: 2)
+                .padding(.horizontal)
             }
-            .background(.backgroundsBottomNavigation)
-            .clipShape(RoundedRectangle(cornerRadius: 31))
-            .shadow(color: .black.opacity(0.16), radius: 16, x: 0, y: 2)
-            .padding(.horizontal)
+            .ignoresSafeArea(.keyboard, edges: .bottom)
         }
-        .ignoresSafeArea(.keyboard, edges: .bottom)
     }
 }
 
