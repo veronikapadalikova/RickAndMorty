@@ -29,16 +29,16 @@ enum Router: URLRequestCovertible {
         }
     }
     
-    var query: String? {
+    var query: URLQueryItem? {
         switch self {
         case .fetchAllCharacters(let page):
             if let page = page {
-                return "/?page=\(page)"
+                return URLQueryItem(name: "page", value: "\(page)")
             } else {
                 return nil
             }
         case .searchCharacter(let name):
-            return "/?name=\(name)"
+            return URLQueryItem(name: "name", value: name)
         default:
             return nil
         }
@@ -49,13 +49,28 @@ enum Router: URLRequestCovertible {
     }
     
     func makeURLRequest() throws -> URLRequest {
-        guard let url = URL(string: APIConfig.baseURL + endpoint + (query ?? "")) else {
+        guard let url = URL(string: APIConfig.baseURL + endpoint) else {
             throw NetworkError.invalidUrl
         }
         
-        var request = URLRequest(url: url)
-        request.httpMethod = self.method
-        
-        return request
+        if let query = query {
+            var components = URLComponents(url: url, resolvingAgainstBaseURL: false)
+            components?.queryItems = [
+                query
+            ]
+            
+            guard let finalURL = components?.url else {
+                throw NetworkError.invalidUrl
+            }
+            
+            var request = URLRequest(url: finalURL)
+            request.httpMethod = self.method
+            return request
+        } else {
+            var request = URLRequest(url: url)
+            request.httpMethod = self.method
+            
+            return request
+        }
     }
 }

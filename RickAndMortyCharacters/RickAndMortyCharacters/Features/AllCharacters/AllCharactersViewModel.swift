@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import Combine
 
 protocol CharacterViewModel {
     var characters: [Character] { get set }
@@ -22,50 +23,100 @@ enum PaginationState {
 @MainActor
 class AllCharactersViewModel: ObservableObject, @preconcurrency CharacterViewModel {
     @Published var characters: [Character] = []
+    @Published var searchText: String = ""
     
     var moreCharacters: String?
     var paginationState: PaginationState?
     
-    init(){}
+    private var cancellables = Set<AnyCancellable>()
+    
+    init(){
+        $searchText
+            .debounce(for: .milliseconds(300), scheduler: DispatchQueue.main)
+            .removeDuplicates()
+            .sink { [weak self] text in
+                self?.performSearch(query: text)
+            }
+            .store(in: &cancellables)
+        
+        Task {
+            await self.fetchCharacters()
+        }
+    }
     
     func fetchCharacters() async {
-        if self.characters.isEmpty {
+        let service = Service(urlSession: URLSession.shared)
+        do {
+            let response = try await service.fetchAllCharacters(page: nil)
+            self.moreCharacters = response.info.next
+            self.characters = response.results
+        } catch {
+            // TODO: show alert
+            print("Failed to fetch characters")
+        }
+    }
+    
+    func performSearch(query: String) {
+        guard !query.isEmpty else {
+            return
+        }
+        
+        Task {
             let service = Service(urlSession: URLSession.shared)
             do {
-                let response = try await service.fetchAllCharacters(page: nil)
-                self.moreCharacters = response.info.next
-                self.characters = response.results
+                let response = try await service.fetchSearchedCharacter(name: query)
+                DispatchQueue.main.async {
+                    self.moreCharacters = response.info.next
+                    self.characters = response.results
+                }
             } catch {
                 // TODO: show alert
-                print("Failed to fetch characters")
+                print("Failed to fetch searched characters, error: \(error)")
             }
+        }
+    }
+    
+    func cancelSearch() {
+        Task {
+            await self.fetchCharacters()
         }
     }
     
     func fetchMoreCharacters() async {
         self.paginationState = .loading
-        guard let page = self.extractPageNumber() else {
-            self.paginationState = .error
-            return
+        if let apiUrl = URL(string: self.moreCharacters ?? "") {
+            URLSession.shared.dataTask(with: apiUrl) { [weak self] data, response, error in
+                if error != nil {
+                    DispatchQueue.main.async {
+                        self?.paginationState = .error
+                    }
+                    return
+                }
+                
+                guard let data = data else {
+                    DispatchQueue.main.async {
+                        self?.paginationState = .error
+                    }
+                    return
+                }
+                
+                do {
+                    let decodedResponse = try JSONDecoder().decode(CharacterResponse.self, from: data)
+                    DispatchQueue.main.async {
+                        self?.characters += decodedResponse.results
+                        self?.moreCharacters = decodedResponse.info.next
+                        self?.paginationState = .idle
+                    }
+                } catch {
+                    DispatchQueue.main.async {
+                        self?.paginationState = .error
+                    }
+                }
+            }.resume()
+        } else {
+            DispatchQueue.main.async {
+                self.paginationState = .error
+            }
         }
-        let service = Service(urlSession: URLSession.shared)
-        do {
-            let response = try await service.fetchAllCharacters(page: page)
-            self.moreCharacters = response.info.next
-            self.characters += response.results
-            self.paginationState = .idle
-        } catch {
-            self.paginationState = .error
-            print("Failed to fetch characters")
-        }
-    }
-    
-    func extractPageNumber() -> Int? {
-        guard let input = self.moreCharacters,
-              let lastCharacter = input.last,
-              let number = Int(String(lastCharacter)) else {
-            return nil
-        }
-        return number
     }
 }

@@ -20,8 +20,11 @@ struct AllCharactersView: View {
                 Color(.backgroundsPrimary)
                     .edgesIgnoringSafeArea(.all)
                 
-                // TODO: add search bar that is hidable and custom
                 List {
+                    SearchBar(text: $viewModel.searchText, onCancel: viewModel.cancelSearch)
+                        .listRowSeparator(.hidden)
+                        .listRowBackground(Color(.backgroundsPrimary))
+                    
                     ForEach(Array(viewModel.characters), id: \.self) { character in
                         CharacterCard(character: character)
                             .overlay(content: {
@@ -33,8 +36,14 @@ struct AllCharactersView: View {
                             .listRowSeparator(.hidden)
                             .listRowBackground(Color(.backgroundsPrimary))
                     }
-                    if viewModel.moreCharacters != nil {
+                    if viewModel.moreCharacters != nil && !viewModel.characters.isEmpty {
                         pagingRowView
+                            .listRowSeparator(.hidden)
+                            .listRowBackground(Color(.backgroundsPrimary))
+                    } else {
+                        Rectangle()
+                            .fill(.backgroundsPrimary)
+                            .frame(height: 60)
                             .listRowSeparator(.hidden)
                             .listRowBackground(Color(.backgroundsPrimary))
                     }
@@ -53,10 +62,6 @@ struct AllCharactersView: View {
                 }
             }
             .onAppear {
-                Task {
-                    await viewModel.fetchCharacters()
-                }
-                
                 let appearance = UINavigationBarAppearance()
                 appearance.configureWithOpaqueBackground()
                 appearance.backgroundColor = UIColor(Color(.backgroundsPrimary))
@@ -79,7 +84,7 @@ struct AllCharactersView: View {
                 .background(.backgroundsPrimary)
             case .idle:
                 Rectangle()
-                     .fill(.backgroundsPrimary)
+                    .fill(.backgroundsPrimary)
             case .error:
                 HStack(spacing: 4) {
                     Spacer()
@@ -98,14 +103,14 @@ struct AllCharactersView: View {
                 }
             case .none:
                 Rectangle()
-                     .fill(.backgroundsPrimary)
+                    .fill(.backgroundsPrimary)
             }
         }
         .frame(height: 60)
         .padding(.bottom, 72)
         .onAppear {
             Task {
-                 await viewModel.fetchMoreCharacters()
+                await viewModel.fetchMoreCharacters()
             }
         }
     }
