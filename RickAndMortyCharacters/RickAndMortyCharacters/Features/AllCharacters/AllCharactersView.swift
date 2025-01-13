@@ -15,15 +15,13 @@ struct AllCharactersView: View {
     @ObservedObject private var viewModel = AllCharactersViewModel()
     
     var body: some View {
-        NavigationStack {
-            ZStack {
-                Color(.backgroundsPrimary)
-                    .edgesIgnoringSafeArea(.all)
-                
+        StyledNavigationStack {
+            VStack {
                 List {
-                    SearchBar(text: $viewModel.searchText, onCancel: viewModel.cancelSearch)
+                    SearchBar(text: $viewModel.searchText, onTextDelete: viewModel.cancelSearch)
                         .listRowSeparator(.hidden)
                         .listRowBackground(Color(.backgroundsPrimary))
+                        .listRowInsets(EdgeInsets(top: 16, leading: 16, bottom: 24, trailing: 16))
                     
                     ForEach(Array(viewModel.characters), id: \.self) { character in
                         CharacterCard(character: character)
@@ -35,11 +33,18 @@ struct AllCharactersView: View {
                             })
                             .listRowSeparator(.hidden)
                             .listRowBackground(Color(.backgroundsPrimary))
+                            .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
                     }
                     if viewModel.moreCharacters != nil && !viewModel.characters.isEmpty {
-                        pagingRowView
-                            .listRowSeparator(.hidden)
-                            .listRowBackground(Color(.backgroundsPrimary))
+                        PagingRow(
+                            paginationState: viewModel.paginationState,
+                            fetchMoreCharacters: {
+                                Task {
+                                    await viewModel.fetchMoreCharacters()
+                                }
+                            })
+                        .listRowSeparator(.hidden)
+                        .listRowBackground(Color(.backgroundsPrimary))
                     } else {
                         Rectangle()
                             .fill(.backgroundsPrimary)
@@ -49,68 +54,16 @@ struct AllCharactersView: View {
                     }
                 }
                 .listStyle(.plain)
-                .listRowSpacing(0)
                 .background(.backgroundsPrimary)
-                .toolbar {
-                    ToolbarItem(placement: .topBarLeading) {
-                        Text("Characters")
-                            .fontStyle(Typography.heading1)
-                            .foregroundStyle(.foregroundsPrimary)
-                            .padding(.top, 8)
-                            .padding(.bottom, 10)
-                    }
-                }
             }
-            .onAppear {
-                let appearance = UINavigationBarAppearance()
-                appearance.configureWithOpaqueBackground()
-                appearance.backgroundColor = UIColor(Color(.backgroundsPrimary))
-                appearance.shadowColor = .clear
-                UINavigationBar.appearance().standardAppearance = appearance
-                UINavigationBar.appearance().scrollEdgeAppearance = appearance
-            }
-        }
-    }
-    
-    var pagingRowView: some View {
-        ZStack(alignment: .center) {
-            switch viewModel.paginationState {
-            case .loading:
-                HStack {
-                    Spacer()
-                    ProgressView()
-                    Spacer()
+            .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Text("Characters")
+                        .fontStyle(Typography.heading1)
+                        .foregroundStyle(.foregroundsPrimary)
+                        .padding(.top, 8)
+                        .padding(.bottom, 10)
                 }
-                .background(.backgroundsPrimary)
-            case .idle:
-                Rectangle()
-                    .fill(.backgroundsPrimary)
-            case .error:
-                HStack(spacing: 4) {
-                    Spacer()
-                    
-                    Image(systemName: "questionmark.diamond")
-                        .imageScale(.large)
-                        .foregroundStyle(.iconsSecondary)
-                        .background(.backgroundsPrimary)
-                    
-                    Text("Failed to load more")
-                        .fontStyle(Typography.paragraphSmall)
-                        .foregroundStyle(.foregroundsSecondary)
-                    
-                    // some reload button would be nice here
-                    Spacer()
-                }
-            case .none:
-                Rectangle()
-                    .fill(.backgroundsPrimary)
-            }
-        }
-        .frame(height: 60)
-        .padding(.bottom, 72)
-        .onAppear {
-            Task {
-                await viewModel.fetchMoreCharacters()
             }
         }
     }

@@ -15,12 +15,8 @@ struct FavoritesCharactersView: View {
     @ObservedObject private var viewModel = FavoritesCharactersViewModel()
     
     var body: some View {
-        // TODO: make navigation stack as component
-        NavigationStack {
-            ZStack {
-                Color(.backgroundsPrimary)
-                    .ignoresSafeArea(.all)
-                
+        StyledNavigationStack {
+            VStack {
                 if self.characterIds.isEmpty {
                     Text("No favorites yet")
                         .fontStyle(Typography.paragraphLarge)
@@ -30,13 +26,14 @@ struct FavoritesCharactersView: View {
                         ForEach(Array(viewModel.favoritesCharacters.enumerated()), id: \.1.self) { index, character in
                             CharacterCard(character: character)
                                 .overlay(content: {
-                                    NavigationLink(destination: CharacterDetail(character: character, previousViewTitle: "Favorites"), label: {
+                                    NavigationLink(destination: CharacterDetail(character: character, previousViewTitle: "Favorites"), label: { // tabBarManager: tabBarManager,
                                         EmptyView()
                                     })
                                     .opacity(0)
                                 })
                                 .listRowSeparator(.hidden)
                                 .listRowBackground(Color(.backgroundsPrimary))
+                                .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
                                 .padding(.bottom, index == viewModel.favoritesCharacters.count - 1 ? 72 : 0)
                         }
                     }
@@ -54,17 +51,10 @@ struct FavoritesCharactersView: View {
                         .padding(.bottom, 10)
                 }
             }
-            .onAppear {
-                Task {
-                    await viewModel.fetchFavorites(characterIds: self.characterIds)
-                }
-                
-                let appearance = UINavigationBarAppearance()
-                appearance.configureWithOpaqueBackground()
-                appearance.backgroundColor = UIColor(Color(.backgroundsPrimary))
-                appearance.shadowColor = .clear
-                UINavigationBar.appearance().standardAppearance = appearance
-                UINavigationBar.appearance().scrollEdgeAppearance = appearance
+        }
+        .onAppear {
+            Task {
+                await viewModel.fetchFavorites(characterIds: self.characterIds)
             }
         }
     }

@@ -16,20 +16,7 @@ struct CharacterCard: View {
     
     var body: some View {
         HStack(alignment: .top, spacing: 16) {
-            AsyncImage(url: URL(string: self.character.image)) { phase in
-                if let image = phase.image {
-                    image
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                } else if phase.error != nil {
-                    Image(systemName: "questionmark.diamond")
-                        .imageScale(.large)
-                } else {
-                    ProgressView()
-                }
-            }
-            .frame(width: 44, height: 44)
-            .clipShape(RoundedRectangle(cornerRadius: 8))
+            RemoteImage(url: self.character.image, width: 44, height: 44)
             
             VStack(alignment: .leading) {
                 HStack(alignment: .top, spacing: 4) {
@@ -65,7 +52,6 @@ struct CharacterCard: View {
         .background(.backgroundsTertiary)
         .clipShape(RoundedRectangle(cornerRadius: 16))
         .shadow(color: .black.opacity(0.04), radius: 16)
-        
     }
 }
 

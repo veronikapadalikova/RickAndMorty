@@ -10,9 +10,8 @@ import SwiftData
 
 struct ContentView: View {
     @State private var selectedTab = 0
-
+    
     var body: some View {
-        // TODO: hide tab view when detail is displayed
         ZStack(alignment: .bottom) {
             Group {
                 switch selectedTab {
@@ -26,7 +25,7 @@ struct ContentView: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .edgesIgnoringSafeArea(.all)
-
+            
             ZStack {
                 HStack(spacing: 32) {
                     ForEach(TabbedItems.allCases, id: \.self) { item in
@@ -42,7 +41,7 @@ struct ContentView: View {
             }
             .background(.backgroundsBottomNavigation)
             .clipShape(RoundedRectangle(cornerRadius: 31))
-            .shadow(radius: 12)
+            .shadow(color: .black.opacity(0.16), radius: 16, x: 0, y: 2)
             .padding(.horizontal)
         }
         .ignoresSafeArea(.keyboard, edges: .bottom)

@@ -51,8 +51,7 @@ class AllCharactersViewModel: ObservableObject, @preconcurrency CharacterViewMod
             self.moreCharacters = response.info.next
             self.characters = response.results
         } catch {
-            // TODO: show alert
-            print("Failed to fetch characters")
+            self.characters = []
         }
     }
     
@@ -70,8 +69,7 @@ class AllCharactersViewModel: ObservableObject, @preconcurrency CharacterViewMod
                     self.characters = response.results
                 }
             } catch {
-                // TODO: show alert
-                print("Failed to fetch searched characters, error: \(error)")
+                self.characters = []
             }
         }
     }

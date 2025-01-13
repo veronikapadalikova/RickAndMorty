@@ -10,7 +10,7 @@ import SwiftUI
 struct SearchBar: View {
     @Binding var text: String
     @FocusState private var isFieldFocused: Bool
-    var onCancel: () -> Void
+    var onTextDelete: () -> Void
     
     var body: some View {
         HStack(spacing: 8) {
@@ -38,7 +38,7 @@ struct SearchBar: View {
                         .padding(.trailing, 8)
                         .onTapGesture {
                             text = ""
-                            onCancel()
+                            onTextDelete()
                         }
                 }
             }
@@ -69,7 +69,7 @@ struct SearchBar: View {
         @State var text = "rick"
         
         var body: some View {
-            SearchBar(text: $text, onCancel: { return })
+            SearchBar(text: $text, onTextDelete: { return })
         }
     }
     

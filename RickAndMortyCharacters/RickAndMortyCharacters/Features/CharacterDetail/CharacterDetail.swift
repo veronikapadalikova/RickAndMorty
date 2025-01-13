@@ -13,6 +13,8 @@ struct CharacterDetail: View {
     @Environment(\.modelContext) private var modelContext
     @Query private var characterIds: [FavoriteCharacterID]
     
+    @GestureState private var dragOffset = CGSize.zero
+    
     var character: Character
     var previousViewTitle: String
     
@@ -21,79 +23,67 @@ struct CharacterDetail: View {
             Color(.backgroundsPrimary)
                 .edgesIgnoringSafeArea(.all)
             
-            VStack {
-                VStack(spacing: 0) {
-                    HStack(alignment: .top, spacing: 16) {
-                        AsyncImage(url: URL(string: self.character.image)) { phase in
-                            if let image = phase.image {
-                                image
-                                    .resizable()
-                                    .aspectRatio(contentMode: .fit)
-                            } else if phase.error != nil {
-                                Image(systemName: "questionmark.diamond")
-                                    .imageScale(.large)
-                            } else {
-                                ProgressView()
-                            }
-                        }
-                        .frame(width: 140, height: 140)
-                        .clipShape(RoundedRectangle(cornerRadius: 8))
-                        
-                        VStack(alignment: .leading, spacing: 6) {
-                            HStack(alignment: .top) {
-                                Text("Name")
-                                    .fontStyle(Typography.paragraphMedium)
-                                    .foregroundStyle(.foregroundsSecondary)
-                                Spacer()
-                                
-                                Button {
-                                    if self.characterIds.contains(where: { $0.id == self.character.id }) {
-                                        if let index = characterIds.firstIndex(where: { $0.id == self.character.id }) {
-                                            modelContext.delete(characterIds[index])
+            ScrollView {
+                VStack {
+                    VStack(spacing: 0) {
+                        HStack(alignment: .top, spacing: 16) {
+                            RemoteImage(url: self.character.image, width: 140, height: 140)
+                            
+                            VStack(alignment: .leading, spacing: 6) {
+                                HStack(alignment: .top) {
+                                    Text("Name")
+                                        .fontStyle(Typography.paragraphMedium)
+                                        .foregroundStyle(.foregroundsSecondary)
+                                    Spacer()
+                                    
+                                    Button {
+                                        if self.characterIds.contains(where: { $0.id == self.character.id }) {
+                                            if let index = characterIds.firstIndex(where: { $0.id == self.character.id }) {
+                                                modelContext.delete(characterIds[index])
+                                            }
+                                        } else {
+                                            let newFavoriteItem = FavoriteCharacterID(id: self.character.id)
+                                            modelContext.insert(newFavoriteItem)
                                         }
-                                    } else {
-                                        let newFavoriteItem = FavoriteCharacterID(id: self.character.id)
-                                        modelContext.insert(newFavoriteItem)
-                                    }
-                                } label: {
-                                    if self.characterIds.contains(where: { $0.id == self.character.id }) {
-                                        Image("favorites_active_32px")
-                                            .resizable()
-                                            .aspectRatio(contentMode: .fit)
-                                            .frame(width: 32, height: 32)
-                                            .foregroundStyle(.accentPrimary)
-                                    } else {
-                                        Image("favorites_inactive_32px")
-                                            .resizable()
-                                            .aspectRatio(contentMode: .fit)
-                                            .frame(width: 32, height: 32)
-                                            .foregroundStyle(.iconsSecondary)
-
+                                    } label: {
+                                        if self.characterIds.contains(where: { $0.id == self.character.id }) {
+                                            Image("favorites_active_32px")
+                                                .resizable()
+                                                .aspectRatio(contentMode: .fit)
+                                                .frame(width: 32, height: 32)
+                                                .foregroundStyle(.accentPrimary)
+                                        } else {
+                                            Image("favorites_inactive_32px")
+                                                .resizable()
+                                                .aspectRatio(contentMode: .fit)
+                                                .frame(width: 32, height: 32)
+                                                .foregroundStyle(.iconsSecondary)
+                                        }
                                     }
                                 }
+                                
+                                Text(character.name)
+                                    .fontStyle(Typography.heading2)
+                                    .foregroundStyle(.foregroundsPrimary)
                             }
-                            
-                            Text(character.name)
-                                .fontStyle(Typography.heading2)
-                                .foregroundStyle(.foregroundsPrimary)
                         }
-                    }
-                    .padding(16)
-                    
-                    CustomDivider()
-                    
-                    HStack {
-                        CharacterDetailInfo(character: self.character)
-                        Spacer()
-                    }
+                        .padding(16)
+                        
+                        CustomDivider()
+                        
+                        HStack {
+                            CharacterDetailInfo(character: self.character)
+                            Spacer()
+                        }
                         .padding(24)
+                    }
+                    .background(.backgroundsTertiary)
+                    .clipShape(RoundedRectangle(cornerRadius: 16))
+                    .shadow(color: .black.opacity(0.04), radius: 16)
+                    .padding(.horizontal, 16)
+                    
+                    Spacer()
                 }
-                .background(.backgroundsTertiary)
-                .clipShape(RoundedRectangle(cornerRadius: 16))
-                .shadow(color: .black.opacity(0.04), radius: 16)
-                .padding(.horizontal, 16)
-                
-                Spacer()
             }
         }
         .navigationBarBackButtonHidden(true)
@@ -118,6 +108,12 @@ struct CharacterDetail: View {
                 .padding(.bottom, 10)
             }
         }
+        .gesture(DragGesture().updating($dragOffset, body: { (value, state, transaction) in
+            if(value.startLocation.x < 20 &&
+               value.translation.width > 100) {
+                self.dismiss()
+            }
+        }))
     }
 }
 
